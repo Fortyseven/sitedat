@@ -13,7 +13,7 @@ console = Console()
 from app.html import get_html_info
 
 # traceback
-traceback.install(show_locals=True)
+traceback.install(show_locals=False)
 
 artifacts_found = 0
 
