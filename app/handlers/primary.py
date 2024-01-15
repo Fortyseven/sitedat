@@ -16,8 +16,14 @@ def robots_handler(args, url, content):
             urls.add(line.split(": ")[-1].strip())
 
     urls = sorted(urls)
+
     for u in urls:
-        console.print(f"   - {args.url}{u}")
+        composed_url = u
+
+        if u.startswith("/"):
+            composed_url = url + u
+
+        console.print(f"   - {composed_url}")
 
 
 def sitemap_handler(args, url, content):
