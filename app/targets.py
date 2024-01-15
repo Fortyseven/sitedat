@@ -34,7 +34,6 @@ TARGETS = {
         "/test",
         "/testing",
         "/tmp",
-        "/wp-admin",
         # "/.well-known/security.txt",
     ],
     "WordPress": {
