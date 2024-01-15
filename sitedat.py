@@ -67,6 +67,8 @@ def main(args):
 
     console.print("-" * 50)
 
+    call_primary_handler = False
+
     for target in TARGETS.keys():
         console.print(f"\n## [bold]{target.upper()}[/bold] ##")
 
@@ -84,8 +86,6 @@ def main(args):
 
         # a special handler block
         elif type(TARGETS[target]) is dict:
-            call_primary_handler = True
-
             target_handler = TARGETS[target]["handler"]  # for processing all afterward
             files = TARGETS[target]["files"]  # if any of these exist, call the handler
 
