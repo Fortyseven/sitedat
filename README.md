@@ -19,4 +19,11 @@ Hardly a new tool, but I felt the itch, and so it went. There are better, safer,
     -   All functions are optional; just set them to `None`.
     -   Check the "WordPress" section for a working example of this.
 
+## Contrib
+
+-   No contributions are being accepted for this project.
+-   Issues with reproducible details are encouraged.
+-   No support is being provided.
+-   Feel free to fork. It's not a complicated project.
+
 ![](docs/image.png)
