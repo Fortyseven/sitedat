@@ -1,11 +1,19 @@
 #!/usr/bin/env python3
 
 from .handlers.wordpress import wp_handler, wp_xmlrpc_handler
+from .handlers.primary import robots_handler, sitemap_handler
 
 TARGETS = {
+    "Primary": {
+        "handler": None,
+        "files": {
+            "/robots.txt": robots_handler,
+            "/sitemap.xml": sitemap_handler,
+        },
+    },
     "Misc": [
-        "/robots.txt",
-        "/sitemap.xml",
+        # "/robots.txt",
+        # "/sitemap.xml",
         "/humans.txt",
         "/.vscode/settings.json",
         "/.env",
@@ -43,3 +51,7 @@ TARGETS = {
         },
     },
 }
+
+# TODO: this will be a bin where we can add targets found after a handler finds them;
+# not currently used
+DISCOVERED_ASSETS = []
