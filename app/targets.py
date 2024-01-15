@@ -40,7 +40,7 @@ TARGETS = {
     "WordPress": {
         "handler": wp_handler,
         "files": {
-            "/wp-admin": None,  # just recognize it exists, and that we're dealing with WP
+            "/wp-admin": None,  # optional handler here; None if no handler
         },
     },
 }
