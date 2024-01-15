@@ -97,10 +97,17 @@ def main(args):
 
             for file in files.keys():
                 for tested_path, result, url, content in processFiles(args.url, [file]):
-                    console.print(
-                        f" - {tested_path}, {'[green]'+url+'[/green]' if result else '[red]--[/red]'}"
-                    )
+                    if args.verbose:
+                        console.print(
+                            f" - {tested_path}, {'[green]'+url+'[/green]' if result else '[red]--[/red]'}"
+                        )
+
                     if result:
+                        if not args.verbose:
+                            # we've already printed if we're verbose
+                            console.print(
+                                f" - {tested_path}, {'[green]'+url+'[/green]'}"
+                            )
                         artifacts_found += 1
                         call_primary_handler = True
 
