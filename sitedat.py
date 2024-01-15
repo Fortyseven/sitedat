@@ -77,6 +77,9 @@ def main(args):
             for tested_path, result, url, content in processFiles(
                 args.url, TARGETS[target]
             ):
+                if not args.verbose and not result:
+                    continue
+
                 if result:
                     artifacts_found += 1
 
