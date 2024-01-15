@@ -124,20 +124,25 @@ def get_html_info(args):
     if args.ua_googlebot:
         ua = const.USER_AGENTS["googlebot"]
 
-    raw_html = requests.get(
-        args.url,
-        headers={
-            "User-Agent": ua,
-        },
-    ).content.decode("utf-8")
+    try:
+        raw_html = requests.get(
+            args.url,
+            headers={
+                "User-Agent": ua,
+            },
+        ).content.decode("utf-8")
 
-    soup = BeautifulSoup(raw_html, "html.parser")
+        soup = BeautifulSoup(raw_html, "html.parser")
 
-    title = soup.title
+        title = soup.title
 
-    if title:
-        console.print(f"Title: `{title.string}`")
+        if title:
+            console.print(f"Title: `{title.string}`")
 
-    dump_meta(soup)
-    dump_comments(soup)
-    dump_links_and_such(soup, args)
+        dump_meta(soup)
+        dump_comments(soup)
+        dump_links_and_such(soup, args)
+
+    except Exception as e:
+        console.print(f"Error: {e}")
+        exit(1)
