@@ -12,8 +12,6 @@ TARGETS = {
         },
     },
     "Misc": [
-        # "/robots.txt",
-        # "/sitemap.xml",
         "/humans.txt",
         "/.vscode/settings.json",
         "/.env",
