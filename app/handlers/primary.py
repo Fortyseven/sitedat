@@ -21,7 +21,7 @@ def robots_handler(args, url, content):
         composed_url = u
 
         if u.startswith("/"):
-            composed_url = url + u
+            composed_url = args.url + u
 
         console.print(f"   - {composed_url}")
 
