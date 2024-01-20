@@ -67,14 +67,14 @@ def dump_meta(soup):
         for k, v in sorted(meta_props.items()):
             tab.add_row(k, v)
 
-        console.print(tab)
+        console.log(tab)
 
 
 def dump_comments(soup):
     comments = soup.find_all(string=lambda text: isinstance(text, Comment))
     if comments:
-        console.print("-" * 50)
-        console.print(f"# Found comments:")
+        console.rule()
+        console.log(f"# Found comments:")
         comment_entry = set()
         for c in comments:
             comment_entry.add(c.strip())
@@ -104,14 +104,14 @@ def dump_links_and_such(soup, args):
             _aggregate_link(host["href"], parse_url)
 
     if found_paths:
-        console.print("-" * 50)
+        console.rule()
         console.print(f"# Found paths:")
         for host in sorted(found_paths):
             console.print(f"  - {args.url+host}")
 
     if found_domains:
         sorted(found_domains)
-        console.print("-" * 50)
+        console.rule()
         console.print(f"# Found domains:")
         for domain in sorted(found_domains):
             console.print(f"  - https://{domain}")

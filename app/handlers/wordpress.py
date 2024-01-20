@@ -16,8 +16,8 @@ def wp_xmlrpc_handler(args, url, content):
 
     try:
         server = xmlrpc.client.ServerProxy(url)
-        console.print(f" - {url} system.listMethods(): ")
-        print(" - ", server.system.listMethods())
+        console.log(f" - {url} system.listMethods(): ")
+        print("\n - ", server.system.listMethods())
 
     except Exception as e:
-        console.print("Tried to query XML-RPC methods, but got an error: ", e)
+        console.log("Tried to query XML-RPC methods, but got an error: ", e)

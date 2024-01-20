@@ -17,6 +17,7 @@ def robots_handler(args, url, content):
 
     urls = sorted(urls)
 
+    console.print
     for u in urls:
         composed_url = u
 
