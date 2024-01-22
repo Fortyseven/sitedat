@@ -55,26 +55,21 @@ def dump_meta(soup):
                 meta_props[key] = m.get("content", "--")
 
     if meta_props:
-        tab = Table(
-            title="Meta Tags",
-            title_justify="left",
-            show_header=True,
-            header_style="yellow bold",
-        )
+        console.rule("## Meta Tags ##", characters="-", style="black bold")
+        tab = Table(width=console.width)
         tab.add_column("Key", style="red")
         tab.add_column("Value", style="yellow")
 
         for k, v in sorted(meta_props.items()):
             tab.add_row(k, v)
 
-        console.log(tab)
+        console.print(tab)
 
 
 def dump_comments(soup):
     comments = soup.find_all(string=lambda text: isinstance(text, Comment))
     if comments:
-        console.rule()
-        console.log(f"# Found comments:")
+        console.rule("## Comments ##", characters="-", style="black bold")
         comment_entry = set()
         for c in comments:
             comment_entry.add(c.strip())
@@ -82,6 +77,16 @@ def dump_comments(soup):
         for c in comment_entry:
             console.print(f"- [green]<!-- {c.strip()} -->[/green]")
 
+def dump_headers(headers):
+    console.rule("## Response Headers ##", characters="-", style="black bold")
+    tab = Table(width=console.width)
+    tab.add_column("Key", style="blue")
+    tab.add_column("Value", style="cyan")
+
+    for k, v in sorted(headers.items()):
+        tab.add_row(k, v)
+
+    console.print(tab)
 
 def dump_links_and_such(soup, args):
     parse_url = urllib3.util.url.parse_url(args.url)
@@ -104,15 +109,13 @@ def dump_links_and_such(soup, args):
             _aggregate_link(host["href"], parse_url)
 
     if found_paths:
-        console.rule()
-        console.print(f"# Found paths:")
+        console.rule("## Found paths ##", characters="-", style="black bold")
         for host in sorted(found_paths):
             console.print(f"  - {args.url+host}")
 
     if found_domains:
         sorted(found_domains)
-        console.rule()
-        console.print(f"# Found domains:")
+        console.rule("## Found domains ##", characters="-", style="black bold")
         for domain in sorted(found_domains):
             console.print(f"  - https://{domain}")
 
@@ -125,12 +128,14 @@ def get_html_info(args):
         ua = const.USER_AGENTS["googlebot"]
 
     try:
-        raw_html = requests.get(
+        result = requests.get(
             args.url,
             headers={
                 "User-Agent": ua,
             },
-        ).content.decode("utf-8")
+        )
+
+        raw_html = result.content.decode("utf-8")
 
         soup = BeautifulSoup(raw_html, "html.parser")
 
@@ -139,6 +144,7 @@ def get_html_info(args):
         if title:
             console.print(f"Title: `{title.string}`")
 
+        dump_headers(result.headers)
         dump_meta(soup)
         dump_comments(soup)
         dump_links_and_such(soup, args)

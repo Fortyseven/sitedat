@@ -8,7 +8,7 @@ from rich import traceback
 import app.const
 from app.targets import TARGETS
 
-console = Console()
+console = Console(color_system="auto")
 
 from app.html import get_html_info
 
@@ -52,82 +52,90 @@ def outputStandardResults(args, base_url, out_path, result, content):
         console.print(f"\n```\n{content}\n```\n`")
 
 
+def process_target_list(args, targets, current_target_name):
+    global artifacts_found
+
+    with console.status(current_target_name, spinner="earth"):
+        for tested_path, result, url, content in processFiles(args.url, targets):
+            if not args.verbose and not result:
+                continue
+
+            if result:
+                artifacts_found += 1
+
+            console.print(
+                f" - {tested_path}, {'[green link]'+url+'[/green link]' if result else '[red]--[/red]'}"
+            )
+
+def process_target_custom(args, custom_target, current_target_name):
+    global artifacts_found
+
+    call_primary_handler = False
+
+    target_handler = custom_target["handler"]  # for processing all afterward
+    files = custom_target["files"]  # if any of these exist, call the handler
+
+    if type(files) is not dict:
+        raise Exception(f"Expected dict for {current_target_name}-handled files list...")
+
+    for file in files.keys():
+        for tested_path, result, url, content in processFiles(args.url, [file]):
+            if args.verbose:
+                console.print(
+                    f" - {tested_path}, {'[link]'+url+'[/link]' if result else '[red]--[/red]'}"
+                )
+
+            if result:
+                if not args.verbose:
+                    # we've already printed if we're verbose
+                    console.print(
+                        f" - {tested_path}, {'[green]'+url+'[/green]'}"
+                    )
+                artifacts_found += 1
+                call_primary_handler = True
+
+                # if this has a handler specified, call it
+                if files[file] is not None and not args.no_handlers:
+                    files[file](args, url, content)
+
+    if (
+        call_primary_handler
+        and target_handler is not None
+        and not args.no_handlers
+    ):
+        target_handler(args)
+
+    pass
+
+
 def main(args):
     global artifacts_found
 
     # fully quality args.url
     if not args.url.startswith("http"):
         args.url = "https://" + args.url
-    console.rule()
 
-    console.print(f"Quick stats for [bold]{args.url}[/bold]:")
-
-    console.rule()
+    console.rule(f"Quick stats for [bold]{args.url}[/bold]", characters="-")
 
     get_html_info(args)
-
-    console.rule()
 
     call_primary_handler = False
 
     for target in TARGETS.keys():
-        current_target = target
-        console.log(f"## [bold]{target.upper()}[/bold] ##")
+        current_target_name = target
+        console.rule(f"## {target.upper()} ##",  style="black bold", characters="-")
 
         # just a plain list of files
         if type(TARGETS[target]) is list:
-            with console.status(current_target, spinner="earth"):
-                for tested_path, result, url, content in processFiles(
-                    args.url, TARGETS[target]
-                ):
-                    if not args.verbose and not result:
-                        continue
-
-                    if result:
-                        artifacts_found += 1
-
-                    console.log(
-                        f" - {tested_path}, {'[green]'+url+'[/green]' if result else '[red]--[/red]'}"
-                    )
+            process_target_list(args, TARGETS[target], current_target_name)
 
         # a special handler block
         elif type(TARGETS[target]) is dict:
-            target_handler = TARGETS[target]["handler"]  # for processing all afterward
-            files = TARGETS[target]["files"]  # if any of these exist, call the handler
-
-            if type(files) is not dict:
-                raise Exception(f"Expected dict for {target} handled files list...")
-
-            for file in files.keys():
-                for tested_path, result, url, content in processFiles(args.url, [file]):
-                    if args.verbose:
-                        console.log(
-                            f" - {tested_path}, {'[green]'+url+'[/green]' if result else '[red]--[/red]'}"
-                        )
-
-                    if result:
-                        if not args.verbose:
-                            # we've already printed if we're verbose
-                            console.log(
-                                f" - {tested_path}, {'[green]'+url+'[/green]'}"
-                            )
-                        artifacts_found += 1
-                        call_primary_handler = True
-
-                        # if this has a handler specified, call it
-                        if files[file] is not None and not args.no_handlers:
-                            files[file](args, url, content)
-
-            if (
-                call_primary_handler
-                and target_handler is not None
-                and not args.no_handlers
-            ):
-                target_handler(args)
+            process_target_custom(args, TARGETS[target], current_target_name)
         else:
             raise Exception(f"Unknown target type for {target}...")
 
-    console.log(f"\nFound [bold]{artifacts_found}[/bold] artifacts.")
+    console.print(f"\nFound [bold]{artifacts_found}[/bold] artifacts.")
 
 
 if __name__ == "__main__":
@@ -165,5 +173,5 @@ if __name__ == "__main__":
     try:
         main(args)
     except KeyboardInterrupt:
-        console.print("\n[yellow]ABORTED...[/yellow]")
+        console.print("\n[yellow blink]ABORTED...[/yellow blink]")
         pass
