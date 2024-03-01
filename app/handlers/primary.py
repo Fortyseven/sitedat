@@ -7,9 +7,14 @@ def robots_handler(args, url, content):
     urls = set()
 
     for line in content.splitlines():
-        if (
-            line.startswith("Disallow:") or line.startswith("Allow:")
-        ) and "*" not in line:
+        if line.startswith("Disallow:") or line.startswith(
+            "Allow:"
+        ):  # and "*" not in line:
+            if line.endswith("*"):
+                line = line.split(": ")[-1].strip()[:-1]
+            if line.endswith("?"):
+                line = line.split(": ")[-1].strip()[:-1]
+
             urls.add(line.split(": ")[-1].strip())
 
         if line.startswith("Sitemap:"):
