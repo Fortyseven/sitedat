@@ -15,6 +15,7 @@ TARGETS = {
         "/humans.txt",
         "/.vscode/settings.json",
         "/.env",
+        "/.git",
         "/.github/workflows/main.yml",
         "/.gitignore",
         "/.travis.yml",
