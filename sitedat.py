@@ -19,6 +19,7 @@ traceback.install(show_locals=False)
 artifacts_found = 0
 
 hashes = {}
+hash_colors = ["red", "green", "yellow", "blue", "magenta", "cyan", "white"]
 
 
 def storeHash(url, content):
@@ -29,6 +30,20 @@ def storeHash(url, content):
 
 def getStoredHash(url):
     return hashes.get(url, None)
+
+
+def getDecoratedStoredHash(url):
+
+    hash = getStoredHash(url)
+
+    # convert hash into an integer
+    hash_id = int(hash, 16) if hash else 0
+    hash_color = hash_colors[hash_id % len(hash_colors)]
+
+    if not hash:
+        return "[red]<?????> [/red] "
+
+    return f"[{hash_color}]<{hash[:5]}>[/{hash_color}] |"
 
 
 def checkPathExist(url, path):
@@ -62,10 +77,10 @@ def process_target_list(args, targets, current_target_name):
             if result:
                 artifacts_found += 1
 
-            hash = getStoredHash(url)
+            decorated_hash = getDecoratedStoredHash(url)
 
             console.print(
-                f" - [yellow]<{hash[:5]}>[/yellow] | {tested_path}, '[green link]{url}[/green link]"
+                f" - {decorated_hash} {tested_path}, [green link]{url}[/green link]"
                 if result
                 else "[red]--[/red]"
             )
