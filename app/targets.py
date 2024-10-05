@@ -19,6 +19,7 @@ TARGETS = {
         "/.github/workflows/main.yml",
         "/.gitignore",
         "/.travis.yml",
+        "/.yarnrc.yml",
         "/package.json",
         "/README.md",
         "/readme.txt",
