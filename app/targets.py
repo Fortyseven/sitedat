@@ -21,6 +21,7 @@ TARGETS = {
         "/.travis.yml",
         "/.yarnrc.yml",
         "/package.json",
+        "/composer.json",
         "/README.md",
         "/readme.txt",
         "/README.txt",
