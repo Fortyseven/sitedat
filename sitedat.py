@@ -129,6 +129,9 @@ def main(args):
     # fully quality args.url
     if not args.url.startswith("http"):
         args.url = "https://" + args.url
+    # Strip trailing slash from URL if present
+    if args.url.endswith("/"):
+        args.url = args.url[:-1]
 
     console.rule(f"Quick stats for [bold]{args.url}[/bold]", characters="-")
 
