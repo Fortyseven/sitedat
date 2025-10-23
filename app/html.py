@@ -9,7 +9,7 @@ from rich.console import Console
 from rich.table import Table
 from rich import print
 import re
-import urllib3
+import urllib.parse
 import validators
 
 from bs4 import BeautifulSoup, Comment
@@ -25,10 +25,10 @@ def _aggregate_link(link, parse_url):
 
     IGNORED_EXTENSIONS = [".png", ".jpg", ".ico", ".jpeg"]
 
-    parse_link = urllib3.util.url.parse_url(link)
+    parse_link = urllib.parse.urlparse(link)
 
-    if parse_link.host and parse_url.host in parse_link.host:
-        found_domains.add(parse_link.host)
+    if parse_link.hostname and parse_url.hostname in parse_link.hostname:
+        found_domains.add(parse_link.hostname)
 
     # console.print(parse_link)
 
@@ -42,7 +42,7 @@ def _aggregate_link(link, parse_url):
                 pth = parse_link.path.split("/")[:-1]
                 found_paths.add("/".join(pth))
 
-    if parse_link.host and parse_link.path and (parse_url.host in parse_link.host):
+    if parse_link.hostname and parse_link.path and (parse_url.hostname in parse_link.hostname):
         # strip file
         if parse_link.path.endswith(tuple(IGNORED_EXTENSIONS)):
             pth = parse_link.path.split("/")[:-1]
@@ -86,15 +86,98 @@ def dump_comments(soup):
 
 
 def dump_headers(headers):
-    console.rule("## Response Headers ##", characters="-", style="black bold")
-    tab = Table(width=console.width)
-    tab.add_column("Key", style="blue")
-    tab.add_column("Value", style="cyan")
+    """
+    Print response headers grouped by category, highlight important headers, and warn about missing/insecure headers.
+    """
+    from rich.text import Text
+    from rich.panel import Panel
 
-    for k, v in sorted(headers.items()):
-        tab.add_row(k, v)
+    # Define header categories and important headers
+    security_headers = {
+        "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+        "X-Frame-Options": "deny",
+        "X-Content-Type-Options": "nosniff",
+        "Content-Security-Policy": None,  # Value varies
+        "X-Permitted-Cross-Domain-Policies": "none",
+        "Referrer-Policy": "no-referrer",
+        "Clear-Site-Data": '"cache","cookies","storage"',
+        "Cross-Origin-Embedder-Policy": "require-corp",
+        "Cross-Origin-Opener-Policy": "same-origin",
+        "Cross-Origin-Resource-Policy": "same-origin",
+        "Permissions-Policy": None,  # Value varies
+    }
+    caching_headers = ["Cache-Control", "Pragma", "Expires"]
+    cookie_headers = ["Set-Cookie", "Cookie"]
+    cors_headers = [
+        "Access-Control-Allow-Origin", "Access-Control-Allow-Methods", "Access-Control-Allow-Headers",
+        "Access-Control-Allow-Credentials", "Access-Control-Expose-Headers", "Access-Control-Max-Age"
+    ]
+    other_headers = ["Content-Type", "Content-Disposition", "Server", "X-Powered-By"]
 
-    console.print(tab)
+    # Group headers
+    grouped = {
+        "Security": {},
+        "Caching": {},
+        "Cookies": {},
+        "CORS": {},
+        "Other": {},
+    }
+    for k, v in headers.items():
+        if k in security_headers:
+            grouped["Security"][k] = v
+        elif k in caching_headers:
+            grouped["Caching"][k] = v
+        elif k in cookie_headers:
+            grouped["Cookies"][k] = v
+        elif k in cors_headers:
+            grouped["CORS"][k] = v
+        else:
+            grouped["Other"][k] = v
+
+    # Check for missing/weak security headers
+    warnings = []
+    for k, recommended in security_headers.items():
+        if k not in headers:
+            warnings.append(f"[bold red]Missing security header:[/bold red] {k}")
+        else:
+            # Check for weak/insecure values
+            val = headers[k]
+            if k == "X-Frame-Options" and val.lower() not in ["deny", "sameorigin"]:
+                warnings.append(f"[bold yellow]Insecure value for X-Frame-Options:[/bold yellow] {val}")
+            if k == "X-Content-Type-Options" and val.lower() != "nosniff":
+                warnings.append(f"[bold yellow]Insecure value for X-Content-Type-Options:[/bold yellow] {val}")
+            if k == "Strict-Transport-Security" and "max-age" not in val:
+                warnings.append(f"[bold yellow]Missing max-age in Strict-Transport-Security:[/bold yellow] {val}")
+            if k == "Referrer-Policy" and val.lower() in ["unsafe-url", "no-referrer-when-downgrade"]:
+                warnings.append(f"[bold yellow]Insecure value for Referrer-Policy:[/bold yellow] {val}")
+            if k == "Cache-Control" and "no-store" not in val:
+                warnings.append(f"[bold yellow]Cache-Control should include 'no-store' for sensitive data:[/bold yellow] {val}")
+
+    # Print warnings first
+    if warnings:
+        console.rule("[red bold]Header Warnings[/red bold]", characters="-", style="red bold")
+        for w in warnings:
+            print(w)
+
+    # Print grouped headers with highlights
+    # Build whitelist of common headers
+    whitelist = set(security_headers.keys()) | set(caching_headers) | set(cookie_headers) | set(cors_headers) | set(other_headers)
+
+    for group, items in grouped.items():
+        if items:
+            console.rule(f"{group} Headers", characters="-", style="black bold")
+            tab = Table(width=console.width)
+            tab.add_column("Key", style="blue")
+            tab.add_column("Value", style="cyan")
+            for k, v in sorted(items.items()):
+                if k in whitelist:
+                    if group == "Security" and k in security_headers:
+                        tab.add_row(f"[bold green]{k}[/bold green]", f"[bold yellow]{v}[/bold yellow]")
+                    else:
+                        tab.add_row(k, v)
+                else:
+                    tab.add_row(f"[white]{k}[/white]", v)
+            console.print(tab)
 
 
 def extract_urls(raw_html):
@@ -107,7 +190,7 @@ def extract_urls(raw_html):
 
 
 def dump_links_and_such(soup, args):
-    parse_url = urllib3.util.url.parse_url(args.url)
+    parse_url = urllib.parse.urlparse(args.url)
 
     raw_html = soup.prettify()
 
