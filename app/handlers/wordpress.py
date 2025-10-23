@@ -1,23 +1,23 @@
 from rich.console import Console
 
-console = Console()
+console = Console(color_system="auto")
 
 
-def wp_handler(args):
-    wp_theme_handler(args)
+def wp_handler(args, content):
+    # console.rule(f"## {target.upper()} ##", style="black bold", characters="-")
+    wp_theme_handler(args, content)
     console.print("\n")
-    wp_xmlrpc_handler(args, f"{args.url}/xmlrpc.php", None)
+    wp_xmlrpc_handler(args, f"{args.url}/xmlrpc.php")
 
 
-def wp_theme_handler(args):
+def wp_theme_handler(args, page_content):
     # this will look inside the index for a reference to the current theme `/wp-content/themes/theme-name`
     theme = None
     import requests
     from bs4 import BeautifulSoup
 
     try:
-        response = requests.get(args.url, timeout=10)
-        soup = BeautifulSoup(response.text, "html.parser")
+        soup = BeautifulSoup(page_content, "html.parser")
         for link in soup.find_all("link", href=True):
             href = link["href"]
             if "/wp-content/themes/" in href:
@@ -47,7 +47,7 @@ def wp_theme_handler(args):
         console.print("   - [red]Error while trying to find WordPress theme[/red]", e)
 
 
-def wp_xmlrpc_handler(args, url, content):
+def wp_xmlrpc_handler(args, url):
     """WordPress XML-RPC handler"""
     # query methods from xmlrpc
 

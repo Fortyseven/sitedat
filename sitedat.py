@@ -21,6 +21,8 @@ artifacts_found = 0
 hashes = {}
 hash_colors = ["red", "green", "yellow", "blue", "magenta", "cyan", "white"]
 
+index_content = None
+
 
 def storeHash(url, content):
     global hashes
@@ -122,13 +124,12 @@ def process_target_custom(args, custom_target, current_target_name):
                     files[file](args, url, content)
 
     if call_primary_handler and target_handler is not None and not args.no_handlers:
-        target_handler(args)
-
+        target_handler(args, index_content)
     pass
 
 
 def main(args):
-    global artifacts_found
+    global artifacts_found, index_content
 
     # fully quality args.url
     if not args.url.startswith("http"):
@@ -139,16 +140,18 @@ def main(args):
 
     console.rule(f"Quick stats for [bold]{args.url}[/bold]", characters="-")
 
+    index_content = requests.get(args.url).content.decode("utf-8")
+
     get_html_info(args)
 
     call_primary_handler = False
 
     for target in TARGETS.keys():
         current_target_name = target
-        console.rule(f"## {target.upper()} ##", style="black bold", characters="-")
 
         # just a plain list of files
         if type(TARGETS[target]) is list:
+            console.rule(f"## {target.upper()} ##", style="black bold", characters="-")
             process_target_list(args, TARGETS[target], current_target_name)
 
         # a special handler block
