@@ -42,7 +42,11 @@ def _aggregate_link(link, parse_url):
                 pth = parse_link.path.split("/")[:-1]
                 found_paths.add("/".join(pth))
 
-    if parse_link.hostname and parse_link.path and (parse_url.hostname in parse_link.hostname):
+    if (
+        parse_link.hostname
+        and parse_link.path
+        and (parse_url.hostname in parse_link.hostname)
+    ):
         # strip file
         if parse_link.path.endswith(tuple(IGNORED_EXTENSIONS)):
             pth = parse_link.path.split("/")[:-1]
@@ -76,6 +80,7 @@ def dump_meta(soup):
 def dump_comments(soup):
     comments = soup.find_all(string=lambda text: isinstance(text, Comment))
     if comments:
+        console.print("")
         console.rule("## Comments ##", characters="-", style="black bold")
         comment_entry = set()
         for c in comments:
@@ -109,8 +114,12 @@ def dump_headers(headers):
     caching_headers = ["Cache-Control", "Pragma", "Expires"]
     cookie_headers = ["Set-Cookie", "Cookie"]
     cors_headers = [
-        "Access-Control-Allow-Origin", "Access-Control-Allow-Methods", "Access-Control-Allow-Headers",
-        "Access-Control-Allow-Credentials", "Access-Control-Expose-Headers", "Access-Control-Max-Age"
+        "Access-Control-Allow-Origin",
+        "Access-Control-Allow-Methods",
+        "Access-Control-Allow-Headers",
+        "Access-Control-Allow-Credentials",
+        "Access-Control-Expose-Headers",
+        "Access-Control-Max-Age",
     ]
     other_headers = ["Content-Type", "Content-Disposition", "Server", "X-Powered-By"]
 
@@ -143,28 +152,51 @@ def dump_headers(headers):
             # Check for weak/insecure values
             val = headers[k]
             if k == "X-Frame-Options" and val.lower() not in ["deny", "sameorigin"]:
-                warnings.append(f"[bold yellow]Insecure value for X-Frame-Options:[/bold yellow] {val}")
+                warnings.append(
+                    f"[bold yellow]Insecure value for X-Frame-Options:[/bold yellow] {val}"
+                )
             if k == "X-Content-Type-Options" and val.lower() != "nosniff":
-                warnings.append(f"[bold yellow]Insecure value for X-Content-Type-Options:[/bold yellow] {val}")
+                warnings.append(
+                    f"[bold yellow]Insecure value for X-Content-Type-Options:[/bold yellow] {val}"
+                )
             if k == "Strict-Transport-Security" and "max-age" not in val:
-                warnings.append(f"[bold yellow]Missing max-age in Strict-Transport-Security:[/bold yellow] {val}")
-            if k == "Referrer-Policy" and val.lower() in ["unsafe-url", "no-referrer-when-downgrade"]:
-                warnings.append(f"[bold yellow]Insecure value for Referrer-Policy:[/bold yellow] {val}")
+                warnings.append(
+                    f"[bold yellow]Missing max-age in Strict-Transport-Security:[/bold yellow] {val}"
+                )
+            if k == "Referrer-Policy" and val.lower() in [
+                "unsafe-url",
+                "no-referrer-when-downgrade",
+            ]:
+                warnings.append(
+                    f"[bold yellow]Insecure value for Referrer-Policy:[/bold yellow] {val}"
+                )
             if k == "Cache-Control" and "no-store" not in val:
-                warnings.append(f"[bold yellow]Cache-Control should include 'no-store' for sensitive data:[/bold yellow] {val}")
+                warnings.append(
+                    f"[bold yellow]Cache-Control should include 'no-store' for sensitive data:[/bold yellow] {val}"
+                )
 
     # Print warnings first
     if warnings:
-        console.rule("[red bold]Header Warnings[/red bold]", characters="-", style="red bold")
+        console.print("")
+        console.rule(
+            "[red bold]Header Warnings[/red bold]", characters="-", style="red bold"
+        )
         for w in warnings:
             print(w)
 
     # Print grouped headers with highlights
     # Build whitelist of common headers
-    whitelist = set(security_headers.keys()) | set(caching_headers) | set(cookie_headers) | set(cors_headers) | set(other_headers)
+    whitelist = (
+        set(security_headers.keys())
+        | set(caching_headers)
+        | set(cookie_headers)
+        | set(cors_headers)
+        | set(other_headers)
+    )
 
     for group, items in grouped.items():
         if items:
+            console.print("")
             console.rule(f"{group} Headers", characters="-", style="black bold")
             tab = Table(width=console.width)
             tab.add_column("Key", style="blue")
@@ -172,7 +204,10 @@ def dump_headers(headers):
             for k, v in sorted(items.items()):
                 if k in whitelist:
                     if group == "Security" and k in security_headers:
-                        tab.add_row(f"[bold green]{k}[/bold green]", f"[bold yellow]{v}[/bold yellow]")
+                        tab.add_row(
+                            f"[bold green]{k}[/bold green]",
+                            f"[bold yellow]{v}[/bold yellow]",
+                        )
                     else:
                         tab.add_row(k, v)
                 else:
@@ -205,6 +240,7 @@ def dump_links_and_such(soup, args):
     urls = [url for url in urls if ".w3.org" not in url]
 
     if urls:
+        console.print("")
         console.rule("Found URLs", characters="#", style="red bold")
 
         urls = sorted(set(urls))
@@ -219,10 +255,12 @@ def dump_links_and_such(soup, args):
                 urls = [x for x in urls if not x == url_js]
 
         if js_urls:
+            console.print("")
             console.rule("JAVASCRIPT", characters="-", style="black bold")
             for url in js_urls:
                 console.print(f"  - {url}")
 
+            console.print("")
             console.rule(
                 "LOOKING INSIDE JAVASCRIPT", characters=">", style="black bold"
             )
@@ -287,16 +325,19 @@ def dump_links_and_such(soup, args):
 
         ####
         if img_urls:
+            console.print("")
             console.rule("MEDIA", characters="-", style="black bold")
             for url in img_urls:
                 console.print(f"  - {url}")
 
         ####
         if urls:
+            console.print("")
             console.rule("UNSORTED", characters="-", style="black bold")
             for url in urls:
                 console.print(f"  - {url}")
 
+    console.print("")
     console.rule("MISC", characters="#", style="purple bold")
 
     # enumerate local/relative paths in href and src attributes
@@ -317,12 +358,14 @@ def dump_links_and_such(soup, args):
     #         _aggregate_link(host["href"], parse_url)
 
     if found_paths:
+        console.print("")
         console.rule("## Found paths ##", characters="-", style="black bold")
         for host in sorted(found_paths):
             console.print(f"  - {args.url+host}")
 
     if found_domains:
         sorted(found_domains)
+        console.print("")
         console.rule("## Found domains ##", characters="-", style="black bold")
         for domain in sorted(found_domains):
             console.print(f"  - https://{domain}")
@@ -352,9 +395,9 @@ def get_html_info(args):
         if title:
             console.print(f"Title: `{title.string}`")
 
+        dump_comments(soup)
         dump_headers(result.headers)
         dump_meta(soup)
-        dump_comments(soup)
         dump_links_and_such(soup, args)
 
     except Exception as e:

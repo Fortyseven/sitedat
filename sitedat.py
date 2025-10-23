@@ -151,6 +151,7 @@ def main(args):
 
         # just a plain list of files
         if type(TARGETS[target]) is list:
+            console.print("")
             console.rule(f"## {target.upper()} ##", style="black bold", characters="-")
             process_target_list(args, TARGETS[target], current_target_name)
 

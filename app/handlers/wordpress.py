@@ -4,10 +4,31 @@ console = Console(color_system="auto")
 
 
 def wp_handler(args, content):
-    # console.rule(f"## {target.upper()} ##", style="black bold", characters="-")
+    # search content for signals suggesting wordpress
+    if "wp-content" in content:
+        version = wp_version(args.url, content)
+        console.print("")
+        console.rule(f"## WORDPRESS ({version}) ##", style="black bold", characters="-")
     wp_theme_handler(args, content)
     console.print("\n")
     wp_xmlrpc_handler(args, f"{args.url}/xmlrpc.php")
+
+
+def wp_version(url, page_content):
+    import re
+    import requests
+
+    version = "unknown"
+
+    feed_content = requests.get(f"{url}/feed").content.decode("utf-8")
+
+    # look for meta generator tag
+    match = re.search(r"wordpress.org\/\?v=(.*)\<", feed_content)
+
+    if match:
+        version = match.group(1)
+
+    return version
 
 
 def wp_theme_handler(args, page_content):
