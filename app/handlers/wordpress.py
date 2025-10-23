@@ -20,7 +20,14 @@ def wp_version(url, page_content):
 
     version = "unknown"
 
-    feed_content = requests.get(f"{url}/feed").content.decode("utf-8")
+    feed_response = requests.get(f"{url}/feed")
+
+    if feed_response.status_code != 200:
+        feed_response = requests.get(f"{url}?feed=rss2")
+        if feed_response.status_code != 200:
+            return version
+
+    feed_content = feed_response.content.decode("utf-8")
 
     # look for meta generator tag
     match = re.search(r"wordpress.org\/\?v=(.*)\<", feed_content)
