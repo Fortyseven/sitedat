@@ -1,4 +1,5 @@
 from rich.console import Console
+import requests
 
 console = Console(color_system="auto")
 
@@ -10,6 +11,7 @@ def wp_handler(args, content):
         console.print("")
         console.rule(f"## WORDPRESS ({version}) ##", style="black bold", characters="-")
     wp_theme_handler(args, content)
+    wp_debug_log(args)
     console.print("\n")
     wp_xmlrpc_handler(args, f"{args.url}/xmlrpc.php")
 
@@ -50,14 +52,12 @@ def wp_theme_handler(args, page_content):
             href = link["href"]
             if "/wp-content/themes/" in href:
                 theme = href.split("/wp-content/themes/")[1].split("/")[0]
-                console.print(
-                    f"\n - [green bold]Found WordPress theme:[/green bold] {theme}"
-                )
+                console.print(f"\n - [green bold]found theme:[/green bold] {theme}")
                 stylescss = f"{args.url}/wp-content/themes/{theme}/style.css"
                 styles_response = requests.get(stylescss, timeout=10)
                 if styles_response.status_code == 200:
                     console.print(
-                        f"   - [blue]Style.css found (size: {len(styles_response.content)} bytes):[/blue] {stylescss}"
+                        f"   - [blue]style.css found (size: {len(styles_response.content)} bytes):[/blue] {stylescss}"
                     )
                     # extract content between /* and */
                     content = styles_response.text
@@ -68,11 +68,36 @@ def wp_theme_handler(args, page_content):
                         for line in style_content.splitlines():
                             console.print(f"      [green]{line.strip()}[/green]")
                 else:
-                    console.print(f"   - [red]Style.css not found:[/red] {stylescss}")
+                    if args.verbose:
+                        console.print(
+                            f"   - [red]style.css not found:[/red] {stylescss}"
+                        )
                 return
-        console.print("   - [red]No WordPress theme detected?[/red]")
+        console.print("   - [red]no theme detected?[/red]")
     except Exception as e:
-        console.print("   - [red]Error while trying to find WordPress theme[/red]", e)
+        console.print("   - [red]error while trying to find theme[/red]", e)
+
+
+def wp_debug_log(args):
+    # Check for /wp-content/debug.log
+
+    debug_log_url = f"{args.url}/wp-content/debug.log"
+    try:
+        response = requests.get(debug_log_url, timeout=10)
+        if response.status_code == 200:
+            console.print(
+                f"\n - [green bold]Found debug log:[/green bold] {debug_log_url}"
+            )
+            lines = response.text.splitlines()
+            for line in lines[:10]:  # print first 10 lines
+                console.print(f"      [yellow]{line}[/yellow]")
+        else:
+            if args.verbose:
+                console.print(
+                    f"\n - [red]Debug log not found (status code: {response.status_code})[/red]"
+                )
+    except Exception as e:
+        console.print("   - [red]Error while trying to access debug log[/red]", e)
 
 
 def wp_xmlrpc_handler(args, url):
@@ -87,4 +112,4 @@ def wp_xmlrpc_handler(args, url):
         console.print("\n - ", server.system.listMethods())
 
     except Exception as e:
-        console.print("   - [red]Tried to query XML-RPC methods but failed.[/red]")
+        console.print("   - [red]Tried to query XML-RPC methods but failed.[/red]", e)
