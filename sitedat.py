@@ -142,25 +142,47 @@ def main(args):
 
     index_content = requests.get(args.url).content.decode("utf-8")
 
-    get_html_info(args)
+    # Only call get_html_info if no --target is specified
+    if not getattr(args, "target", None):
+        get_html_info(args)
 
     call_primary_handler = False
 
-    for target in TARGETS.keys():
-        current_target_name = target
-
-        # just a plain list of files
-        if type(TARGETS[target]) is list:
+    if getattr(args, "target", None):
+        target_input = args.target.lower()
+        # Find matching key in TARGETS (case-insensitive)
+        matched_target = None
+        for key in TARGETS.keys():
+            if key.lower() == target_input:
+                matched_target = key
+                break
+        if not matched_target:
+            console.print(f"[red]Target '{args.target}' not found in TARGETS.[/red]")
+            return
+        current_target_name = matched_target
+        if type(TARGETS[matched_target]) is list:
             console.print("")
-            console.rule(f"## {target.upper()} ##", style="black bold", characters="-")
-            process_target_list(args, TARGETS[target], current_target_name)
-
-        # a special handler block
-        elif type(TARGETS[target]) is dict:
-            process_target_custom(args, TARGETS[target], current_target_name)
+            console.rule(
+                f"## {matched_target.upper()} ##", style="black bold", characters="-"
+            )
+            process_target_list(args, TARGETS[matched_target], current_target_name)
+        elif type(TARGETS[matched_target]) is dict:
+            process_target_custom(args, TARGETS[matched_target], current_target_name)
         else:
-            raise Exception(f"Unknown target type for {target}...")
-
+            raise Exception(f"Unknown target type for {matched_target}...")
+    else:
+        for target in TARGETS.keys():
+            current_target_name = target
+            if type(TARGETS[target]) is list:
+                console.print("")
+                console.rule(
+                    f"## {target.upper()} ##", style="black bold", characters="-"
+                )
+                process_target_list(args, TARGETS[target], current_target_name)
+            elif type(TARGETS[target]) is dict:
+                process_target_custom(args, TARGETS[target], current_target_name)
+            else:
+                raise Exception(f"Unknown target type for {target}...")
     console.print(f"\nFound [bold]{artifacts_found}[/bold] artifacts.")
 
 
@@ -192,6 +214,13 @@ if __name__ == "__main__":
         "--ua-googlebot",
         help="Use googlebot for user agent",
         action="store_true",
+    )
+
+    parser.add_argument(
+        "--target",
+        help="Only run the specified target (case-sensitive, e.g. 'WordPress')",
+        type=str,
+        default=None,
     )
 
     args = parser.parse_args()
