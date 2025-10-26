@@ -54,10 +54,6 @@ TARGETS = {
     ],
     "WordPress": {
         "handler": wp_handler,
-        "files": {
-            "/wp-login.php": None,  # optional handler here; None if no handler
-            "/wp-content": None,
-        },
     },
 }
 

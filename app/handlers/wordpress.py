@@ -9,11 +9,19 @@ def wp_handler(args, content):
     if "wp-content" in content:
         version = wp_version(args.url, content)
         console.print("")
-        console.rule(f"## WORDPRESS ({version}) ##", style="black bold", characters="-")
-    wp_theme_handler(args, content)
-    wp_debug_log(args)
-    console.print("\n")
-    wp_xmlrpc_handler(args, f"{args.url}/xmlrpc.php")
+        console.rule(
+            f"[yellow]## [bold]WORDPRESS[/bold] ({version}) ##[/yellow]",
+            style="black bold",
+            characters="-",
+        )
+
+        wp_theme_handler(args, content)
+        wp_debug_log(args)
+        # console.print("\n")
+        wp_xmlrpc_handler(args, f"{args.url}/xmlrpc.php")
+    else:
+        if args.verbose:
+            console.print(" - [red]No wp-content found in index content.[/red]")
 
 
 def wp_version(url, page_content):

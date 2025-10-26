@@ -93,38 +93,36 @@ def process_target_custom(args, custom_target, current_target_name):
 
     call_primary_handler = False
 
-    target_handler = custom_target["handler"]  # for processing all afterward
-    files = custom_target["files"]  # if any of these exist, call the handler
-
-    if type(files) is not dict:
-        raise Exception(
-            f"Expected dict for {current_target_name}-handled files list..."
-        )
-
-    for file in files.keys():
-        for tested_path, result, url, content in processFiles(args.url, [file]):
-            if args.verbose:
-                if result and url:
-                    console.print(f" - {tested_path}, [link]{url}[/link]")
-                else:
-                    console.print(f" - {tested_path}, [red]--[/red]")
-
-            if result:
-                if not args.verbose:
-                    # we've already printed if we're verbose
-                    if url:
-                        console.print(f" - {tested_path}, [green]{url}[/green]")
+    if "files" in custom_target:
+        files = custom_target["files"]  # if any of these exist, call the handler
+        if type(files) is not dict:
+            raise Exception(
+                f"Expected dict for {current_target_name}-handled files list..."
+            )
+        for file in files.keys():
+            for tested_path, result, url, content in processFiles(args.url, [file]):
+                if args.verbose:
+                    if result and url:
+                        console.print(f" - {tested_path}, [link]{url}[/link]")
                     else:
                         console.print(f" - {tested_path}, [red]--[/red]")
-                artifacts_found += 1
-                call_primary_handler = True
 
-                # if this has a handler specified, call it
-                if files[file] is not None and not args.no_handlers:
-                    files[file](args, url, content)
+                if result:
+                    if not args.verbose:
+                        # we've already printed if we're verbose
+                        if url:
+                            console.print(f" - {tested_path}, [green]{url}[/green]")
+                        else:
+                            console.print(f" - {tested_path}, [red]--[/red]")
+                    artifacts_found += 1
+                    call_primary_handler = True
 
-    if call_primary_handler and target_handler is not None and not args.no_handlers:
-        target_handler(args, index_content)
+                    # if this has a handler specified, call it
+                    if files[file] is not None and not args.no_handlers:
+                        files[file](args, url, content)
+
+    if not args.no_handlers and "handler" in custom_target and custom_target["handler"]:
+        custom_target["handler"](args, index_content)
     pass
 
 
