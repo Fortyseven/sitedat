@@ -28,7 +28,8 @@ def wp_handler(args, content):
     wp_theme_handler(args, content, console)
 
     checkFor(args, console, f"{args.url}/wp-content/debug.log")
-    if checkFor(args, console, f"{args.url}/xmlrpc.php"):
+    checkFor(args, console, f"{args.url}/wp-json")
+    if checkFor(args, console, f"{args.url}/xmlrpc.php", expected_code=405):
         wp_xmlrpc_handler(args, console)
 
 
