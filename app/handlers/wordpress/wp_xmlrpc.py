@@ -3,19 +3,20 @@ def wp_xmlrpc_handler(args, console):
     # query methods from xmlrpc
 
     import xmlrpc.client
-    import requests
 
-    console.print("")
+    # import requests
+
+    # console.print("")
     xmlrpc_path = f"{args.url}/xmlrpc.php"
 
-    # check if xmlrpc.php is accessible
-    response = requests.get(xmlrpc_path, timeout=10)
-    if response.status_code != 405:
-        if args.verbose:
-            console.print(
-                f" - [red]XML-RPC endpoint not found (status code: {response.status_code})[/red]"
-            )
-        return
+    # # check if xmlrpc.php is accessible
+    # response = requests.get(xmlrpc_path, timeout=10)
+    # if response.status_code != 405:
+    #     if args.verbose:
+    #         console.print(
+    #             f" - [red]XML-RPC endpoint not found (status code: {response.status_code})[/red]"
+    #         )
+    #     return
 
     # has 405 ("post only")
     # console.print(f" - [green] endpoint found:[/green] {xmlrpc_path}")

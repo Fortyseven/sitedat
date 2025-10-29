@@ -1,15 +1,16 @@
 import requests
 
 
-def checkFor(args, console, path: str) -> bool:
+def checkFor(args, console, path: str, expected_code=200) -> bool:
     response = requests.head(path, timeout=10)
 
-    if response.status_code != 200:
+    if response.status_code != expected_code:
         if args.verbose:
             console.print(f"- [red]{path}:[/red] {response.status_code}")
         return False
 
     content_length = ""
+    size = None
 
     if "Content-Length" in response.headers:
         size = int(response.headers["Content-Length"]) / 1024
