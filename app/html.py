@@ -94,8 +94,6 @@ def dump_headers(headers):
     """
     Print response headers grouped by category, highlight important headers, and warn about missing/insecure headers.
     """
-    from rich.text import Text
-    from rich.panel import Panel
 
     # Define header categories and important headers
     security_headers = {
@@ -227,7 +225,7 @@ def extract_urls(raw_html):
 def dump_links_and_such(soup, args):
     parse_url = urllib.parse.urlparse(args.url)
 
-    raw_html = soup.prettify()
+    soup.prettify()
 
     # find all valid URLs in the HTML
 
@@ -280,7 +278,6 @@ def dump_links_and_such(soup, args):
                     console.print(f"Error: {e}")
 
             if urls:
-
                 for url in urls:
                     console.print(f"  - {url}")
 
@@ -361,7 +358,7 @@ def dump_links_and_such(soup, args):
         console.print("")
         console.rule("## Found paths ##", characters="-", style="black bold")
         for host in sorted(found_paths):
-            console.print(f"  - {args.url+host}")
+            console.print(f"  - {args.url + host}")
 
     if found_domains:
         sorted(found_domains)

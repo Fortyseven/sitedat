@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-from .handlers.wordpress.wordpress import wp_handler, wp_xmlrpc_handler
+from .handlers.wordpress.wordpress import wp_handler
 from .handlers.primary import robots_handler, sitemap_handler
 
 TARGETS = {

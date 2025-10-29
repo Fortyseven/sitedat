@@ -1,5 +1,4 @@
 from rich.console import Console
-import requests
 
 from app.handlers.wordpress.wp_theme import wp_theme_handler
 from app.handlers.wordpress.wp_xmlrpc import wp_xmlrpc_handler
@@ -11,7 +10,7 @@ console = Console(color_system="auto")
 def wp_handler(args, content):
     # search content for signals suggesting wordpress
 
-    if not "wp-content" in content:
+    if "wp-content" not in content:
         if args.verbose:
             console.print(" - [red]No wp-content found in index content.[/red]")
             console.log(" - content:", content)

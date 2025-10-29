@@ -2,17 +2,15 @@
 import argparse
 import requests
 from rich.console import Console
-from rich.table import Table
 from rich import traceback
 import hashlib
 
-import app.const
 from app.targets import TARGETS
 from app.cloudflare import is_cloudflare_challenge, try_cloudflare_bypass
 
-console = Console(color_system="auto")
-
 from app.html import get_html_info
+
+console = Console(color_system="auto")
 
 # traceback
 traceback.install(show_locals=False)
@@ -51,7 +49,6 @@ def getStoredHash(url):
 
 
 def getDecoratedStoredHash(url):
-
     hash = getStoredHash(url)
 
     # convert hash into an integer
@@ -111,8 +108,6 @@ def process_target_list(args, targets, current_target_name):
 def process_target_custom(args, custom_target, current_target_name):
     global artifacts_found
 
-    call_primary_handler = False
-
     if "files" in custom_target:
         files = custom_target["files"]  # if any of these exist, call the handler
         if type(files) is not dict:
@@ -135,7 +130,6 @@ def process_target_custom(args, custom_target, current_target_name):
                         else:
                             console.print(f" - {tested_path}, [red]--[/red]")
                     artifacts_found += 1
-                    call_primary_handler = True
 
                     # if this has a handler specified, call it
                     if files[file] is not None and not args.no_handlers:
@@ -202,8 +196,6 @@ def main(args):
     # Only call get_html_info if no --target is specified
     if not getattr(args, "target", None):
         get_html_info(args)
-
-    call_primary_handler = False
 
     if getattr(args, "target", None):
         target_input = args.target.lower()
