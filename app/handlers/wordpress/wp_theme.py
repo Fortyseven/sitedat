@@ -30,6 +30,13 @@ def wp_theme_handler(args, page_content, console):
         checkFor(args, console, f"{theme_base}/readme.txt")
         checkFor(args, console, f"{theme_base}/README.txt")
         checkFor(args, console, f"{theme_base}/README.md")
+        checkFor(args, console, f"{theme_base}/functions.bak")
+        checkFor(args, console, f"{theme_base}/functions.bkp")
+        checkFor(args, console, f"{theme_base}/functions.php.bak")
+        checkFor(args, console, f"{theme_base}/functions.php.old")
+        checkFor(args, console, f"{theme_base}/composer.json")
+        checkFor(args, console, f"{theme_base}/yarn.lock")
+
     else:
         console.print("   - [red]no theme detected?[/red]")
 
