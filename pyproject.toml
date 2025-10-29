@@ -1,0 +1,12 @@
+[project]
+name = "sitedat"
+version = "0.1.0"
+description = "A website reconnaissance tool to gather information about a target website."
+readme = "README.md"
+requires-python = ">=3.11.6"
+dependencies = [
+    "bs4>=0.0.2",
+    "cloudscraper>=1.2.71",
+    "rich>=14.2.0",
+    "validators>=0.35.0",
+]
