@@ -6,9 +6,7 @@ def checkFor(args, console, path: str) -> bool:
 
     if response.status_code != 200:
         if args.verbose:
-            console.print(
-                f"- [red]package.json not found:[/red] {response.status_code}"
-            )
+            console.print(f"- [red]{path}:[/red] {response.status_code}")
         return False
 
     content_length = ""
