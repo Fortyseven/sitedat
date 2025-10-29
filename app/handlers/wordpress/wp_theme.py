@@ -18,8 +18,9 @@ def wp_theme_handler(args, page_content, console):
                     style="yellow dim",
                     characters="-",
                 )
+
     except Exception as e:
-        console.print("   - [red]error while trying to find theme[/red]", e)
+        console.print("   - [red]Error while trying to find theme[/red]", e)
 
     if theme:
         theme_base = f"{args.url}/wp-content/themes/{theme}"
@@ -38,7 +39,7 @@ def wp_theme_handler(args, page_content, console):
         checkFor(args, console, f"{theme_base}/yarn.lock")
 
     else:
-        console.print("   - [red]no theme detected?[/red]")
+        console.print("- [red]No theme reference detected?![/red]\n")
 
 
 def dumpStyleCSS(theme_base, console):
