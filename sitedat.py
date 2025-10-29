@@ -8,6 +8,7 @@ import hashlib
 
 import app.const
 from app.targets import TARGETS
+from app.cloudflare import is_cloudflare_challenge, try_cloudflare_bypass
 
 console = Console(color_system="auto")
 
@@ -22,6 +23,21 @@ hashes = {}
 hash_colors = ["red", "green", "yellow", "blue", "magenta", "cyan", "white"]
 
 index_content = None
+session = None  # requests session reused for all HTTP calls
+
+HEADERS = {
+    "User-Agent": (
+        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+        "AppleWebKit/537.36 (KHTML, like Gecko) "
+        "Chrome/124.0.0.0 Safari/537.36"
+    ),
+    "Accept": "text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8",
+    "Accept-Language": "en-US,en;q=0.9",
+    "Cache-Control": "no-cache",
+    "Pragma": "no-cache",
+    "Upgrade-Insecure-Requests": "1",
+    "Connection": "keep-alive",
+}
 
 
 def storeHash(url, content):
@@ -49,16 +65,20 @@ def getDecoratedStoredHash(url):
 
 
 def checkPathExist(url, path):
-    """Check if a path exists on a site"""
+    """Check if a path exists on a site using the shared session."""
+    global session
     try:
         outpath = url + path
-        r = requests.get(outpath)
-        storeHash(outpath, r.content.decode("utf-8"))
+        r = session.get(outpath, timeout=15)
+        # best effort decode
+        encoding = r.encoding or "utf-8"
+        text = r.content.decode(encoding, errors="replace")
+        storeHash(outpath, text)
         if r.status_code == 200:
-            return outpath, True, r.content.decode("utf-8")
+            return outpath, True, text
         else:
             return None, False, None
-    except Exception as e:
+    except Exception:
         return None, False, None
 
 
@@ -127,18 +147,57 @@ def process_target_custom(args, custom_target, current_target_name):
 
 
 def main(args):
-    global artifacts_found, index_content
+    global artifacts_found, index_content, session
 
     # fully quality args.url
     if not args.url.startswith("http"):
         args.url = "https://" + args.url
+
     # Strip trailing slash from URL if present
     if args.url.endswith("/"):
         args.url = args.url[:-1]
 
     console.rule(f"Quick stats for [bold]{args.url}[/bold]", characters="-")
 
-    index_content = requests.get(args.url).content.decode("utf-8")
+    # Prepare reusable session
+    session = requests.Session()
+    session.headers.update(HEADERS)
+    if args.ua_googlebot:
+        session.headers["User-Agent"] = (
+            "Mozilla/5.0 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)"
+        )
+
+    print("Fetching index content...", args.url)
+    resp = session.get(args.url, timeout=20)
+    index_encoding = resp.encoding or "utf-8"
+    index_content = resp.content.decode(index_encoding, errors="replace")
+
+    if is_cloudflare_challenge(resp.status_code, index_content):
+        if getattr(args, "cf_bypass", False):
+            console.print(
+                "[yellow]Cloudflare/WAF challenge detected; attempting bypass (--cf-bypass).[/yellow]"
+            )
+            success, bypass_status, bypass_body = try_cloudflare_bypass(
+                args.url, session.headers
+            )
+            if success:
+                console.print("[green]Bypass successful.[/green]")
+                index_content = bypass_body
+            else:
+                if bypass_status == 0:
+                    console.print(
+                        "[red]cloudscraper not installed or error occurred. Install with: pip install cloudscraper[/red]"
+                    )
+                else:
+                    console.print(
+                        "[red]Bypass attempt failed; still challenged or received error status. Halting.[/red]"
+                    )
+                return
+        else:
+            console.print(
+                "[red]Cloudflare/WAF challenge (403) detected. Use --cf-bypass to attempt a bypass. Halting.[/red]"
+            )
+            return
 
     # Only call get_html_info if no --target is specified
     if not getattr(args, "target", None):
@@ -219,6 +278,11 @@ if __name__ == "__main__":
         help="Only run the specified target (case-sensitive, e.g. 'WordPress')",
         type=str,
         default=None,
+    )
+    parser.add_argument(
+        "--cf-bypass",
+        help="Attempt to bypass Cloudflare JS challenge using cloudscraper",
+        action="store_true",
     )
 
     args = parser.parse_args()
