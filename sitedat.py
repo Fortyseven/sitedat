@@ -5,6 +5,7 @@ from rich.console import Console
 from rich import traceback
 import hashlib
 
+import app.const as const
 from app.targets import TARGETS
 from app.cloudflare import is_cloudflare_challenge, try_cloudflare_bypass
 
@@ -151,7 +152,7 @@ def main(args):
     if args.url.endswith("/"):
         args.url = args.url[:-1]
 
-    console.rule(f"Quick stats for [bold]{args.url}[/bold]", characters="-")
+    console.rule(f"Quick stats for [bold]{args.url}[/bold]", characters=const.CHAR_H1)
 
     # Prepare reusable session
     session = requests.Session()
@@ -212,7 +213,9 @@ def main(args):
         if type(TARGETS[matched_target]) is list:
             console.print("")
             console.rule(
-                f"## {matched_target.upper()} ##", style="black bold", characters="-"
+                f"## {matched_target.upper()} ##",
+                style="black bold",
+                characters=const.CHAR_H2,
             )
             process_target_list(args, TARGETS[matched_target], current_target_name)
         elif type(TARGETS[matched_target]) is dict:
@@ -225,7 +228,9 @@ def main(args):
             if type(TARGETS[target]) is list:
                 console.print("")
                 console.rule(
-                    f"## {target.upper()} ##", style="black bold", characters="-"
+                    f"## {target.upper()} ##",
+                    style="black bold",
+                    characters=const.CHAR_H3,
                 )
                 process_target_list(args, TARGETS[target], current_target_name)
             elif type(TARGETS[target]) is dict:

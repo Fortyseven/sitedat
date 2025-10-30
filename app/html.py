@@ -11,7 +11,6 @@ from rich import print
 import re
 import urllib.parse
 import validators
-
 from bs4 import BeautifulSoup, Comment
 
 console = Console()
@@ -66,7 +65,7 @@ def dump_meta(soup):
                 meta_props[key] = m.get("content", "--")
 
     if meta_props:
-        console.rule("## Meta Tags ##", characters="-", style="black bold")
+        console.rule("## Meta Tags ##", characters=const.CHAR_H2, style="black bold")
         tab = Table(width=console.width)
         tab.add_column("Key", style="red")
         tab.add_column("Value", style="yellow")
@@ -81,7 +80,7 @@ def dump_comments(soup):
     comments = soup.find_all(string=lambda text: isinstance(text, Comment))
     if comments:
         console.print("")
-        console.rule("## Comments ##", characters="-", style="black bold")
+        console.rule("## Comments ##", characters=const.CHAR_H2, style="black bold")
         comment_entry = set()
         for c in comments:
             comment_entry.add(c.strip())
@@ -177,7 +176,9 @@ def dump_headers(headers):
     if warnings:
         console.print("")
         console.rule(
-            "[red bold]Header Warnings[/red bold]", characters="-", style="red bold"
+            "[red bold]Header Warnings[/red bold]",
+            characters=const.CHAR_H2,
+            style="red bold",
         )
         for w in warnings:
             print(w)
@@ -195,7 +196,9 @@ def dump_headers(headers):
     for group, items in grouped.items():
         if items:
             console.print("")
-            console.rule(f"{group} Headers", characters="-", style="black bold")
+            console.rule(
+                f"{group} Headers", characters=const.CHAR_H2, style="black bold"
+            )
             tab = Table(width=console.width)
             tab.add_column("Key", style="blue")
             tab.add_column("Value", style="cyan")
@@ -239,7 +242,7 @@ def dump_links_and_such(soup, args):
 
     if urls:
         console.print("")
-        console.rule("Found URLs", characters="#", style="red bold")
+        console.rule("Found URLs", characters=const.CHAR_H1, style="red bold")
 
         urls = sorted(set(urls))
 
@@ -254,7 +257,7 @@ def dump_links_and_such(soup, args):
 
         if js_urls:
             console.print("")
-            console.rule("JAVASCRIPT", characters="-", style="black bold")
+            console.rule("JAVASCRIPT", characters=const.CHAR_H2, style="black bold")
             for url in js_urls:
                 console.print(f"  - {url}")
 
@@ -323,19 +326,19 @@ def dump_links_and_such(soup, args):
         ####
         if img_urls:
             console.print("")
-            console.rule("MEDIA", characters="-", style="black bold")
+            console.rule("MEDIA", characters=const.CHAR_H2, style="black bold")
             for url in img_urls:
                 console.print(f"  - {url}")
 
         ####
         if urls:
             console.print("")
-            console.rule("UNSORTED", characters="-", style="black bold")
+            console.rule("UNSORTED", characters=const.CHAR_H2, style="black bold")
             for url in urls:
                 console.print(f"  - {url}")
 
     console.print("")
-    console.rule("MISC", characters="#", style="purple bold")
+    console.rule("MISC", characters=const.CHAR_H1, style="purple bold")
 
     # enumerate local/relative paths in href and src attributes
     for link in soup.find_all("a"):
@@ -356,14 +359,16 @@ def dump_links_and_such(soup, args):
 
     if found_paths:
         console.print("")
-        console.rule("## Found paths ##", characters="-", style="black bold")
+        console.rule("## Found paths ##", characters=const.CHAR_H2, style="black bold")
         for host in sorted(found_paths):
             console.print(f"  - {args.url + host}")
 
     if found_domains:
         sorted(found_domains)
         console.print("")
-        console.rule("## Found domains ##", characters="-", style="black bold")
+        console.rule(
+            "## Found domains ##", characters=const.CHAR_H2, style="black bold"
+        )
         for domain in sorted(found_domains):
             console.print(f"  - https://{domain}")
 

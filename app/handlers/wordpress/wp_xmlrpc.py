@@ -1,3 +1,6 @@
+import app.const as const
+
+
 def wp_xmlrpc_handler(args, console):
     """WordPress XML-RPC handler"""
     # query methods from xmlrpc
@@ -23,7 +26,7 @@ def wp_xmlrpc_handler(args, console):
     console.rule(
         f"XML-RPC: [bold cyan]{xmlrpc_path}[/bold cyan]",
         style="yellow dim",
-        characters="-",
+        characters=const.CHAR_H2,
     )
 
     try:

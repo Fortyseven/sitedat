@@ -1,6 +1,7 @@
 import requests
 from app.utils import checkFor
 from bs4 import BeautifulSoup
+import app.const as const
 
 
 def wp_theme_handler(args, page_content, console):
@@ -16,7 +17,7 @@ def wp_theme_handler(args, page_content, console):
                 console.rule(
                     f"theme: [bold cyan]{theme}[/bold cyan]",
                     style="yellow dim",
-                    characters="-",
+                    characters=const.CHAR_H2,
                 )
 
     except Exception as e:
